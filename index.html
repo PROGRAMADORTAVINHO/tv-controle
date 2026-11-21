@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#07070d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Controle do Hub</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; min-height: 100%; background: #07070d; color: #fff; font-family: system-ui, Arial, sans-serif; }
+  body { display: flex; flex-direction: column; align-items: center; padding: 22px 16px 40px; }
+  h1 { font-size: 20px; margin: 0 0 16px; letter-spacing: 2px; font-weight: 800; }
+  h1 span { color: #a78bfa; }
+  button { font: inherit; color: #fff; border: 0; cursor: pointer; }
+  input, select { font: inherit; font-size: 18px; color: #fff; background: #14141f; border: 1px solid #333; border-radius: 12px; padding: 13px; width: 100%; }
+  .box { width: 100%; max-width: 360px; }
+  #pair { display: flex; }
+  #pair input { flex: 1; width: auto; font-size: 22px; letter-spacing: 4px; text-transform: uppercase; text-align: center; margin-right: 8px; }
+  #save { padding: 0 18px; border-radius: 12px; background: #7c3aed; font-weight: 700; }
+
+  .tabs { display: flex; width: 100%; max-width: 360px; background: #14141f; border-radius: 14px; padding: 4px; margin-bottom: 22px; }
+  .tabs button { flex: 1; padding: 10px 0; border-radius: 10px; background: none; color: #8a8aa0; font-size: 15px; }
+  .tabs button.on { background: #7c3aed; color: #fff; font-weight: 700; }
+  .panel { display: none; flex-direction: column; align-items: center; width: 100%; }
+  .panel.on { display: flex; }
+
+  .pad { display: grid; grid-template-columns: repeat(3, 84px); grid-template-rows: repeat(3, 84px); gap: 12px; margin-bottom: 20px; }
+  .pad button { border-radius: 22px; background: #1b1b2b; font-size: 30px; }
+  .pad button:active, .row button:active { background: #7c3aed; transform: scale(.95); }
+  .pad .ok { background: linear-gradient(135deg, #7c3aed, #38bdf8); font-size: 22px; font-weight: 800; }
+  .row { display: flex; }
+  .row button { width: 130px; height: 58px; border-radius: 18px; background: #1b1b2b; font-size: 18px; margin: 0 6px; }
+
+  label { align-self: flex-start; font-size: 13px; color: #8a8aa0; margin: 0 0 6px 4px; }
+  .field { margin-bottom: 16px; width: 100%; }
+  .go { width: 100%; padding: 15px; border-radius: 14px; background: linear-gradient(135deg, #7c3aed, #38bdf8); font-weight: 800; font-size: 18px; }
+  .go:active { transform: scale(.98); }
+  .help { font-size: 13px; color: #8a8aa0; margin-top: 14px; text-align: center; line-height: 1.4; }
+  #st { font-size: 14px; color: #8a8aa0; min-height: 20px; margin-top: 18px; text-align: center; }
+  #st.err { color: #ff6b6b; } #st.good { color: #9ee6b8; }
+  #chg { background: none; color: #8a8aa0; font-size: 13px; text-decoration: underline; margin-top: 22px; }
+</style>
+</head>
+<body>
+  <h1>CONTROLE <span>HUB</span></h1>
+
+  <div id="pair" class="box">
+    <input id="code" maxlength="8" placeholder="código da TV" autocomplete="off" autocapitalize="off" autocorrect="off">
+    <button id="save">OK</button>
+  </div>
+
+  <div id="main" style="display:none; width:100%; flex-direction:column; align-items:center;">
+    <div class="tabs">
+      <button class="on" data-tab="t-ctl">Controle</button>
+      <button data-tab="t-txt">Digitar</button>
+      <button data-tab="t-url">Link</button>
+    </div>
+
+    <div id="t-ctl" class="panel on">
+      <div class="pad">
+        <span></span><button data-k="up">▲</button><span></span>
+        <button data-k="left">◀</button><button class="ok" data-k="ok">OK</button><button data-k="right">▶</button>
+        <span></span><button data-k="down">▼</button><span></span>
+      </div>
+      <div class="row">
+        <button data-k="back">↩ Voltar</button>
+        <button data-k="home">⌂ Início</button>
+      </div>
+    </div>
+
+    <div id="t-txt" class="panel box">
+      <div class="field">
+        <label for="dest">Buscar em</label>
+        <select id="dest">
+          <option value="rad">Rádio (estações)</option>
+          <option value="yt">YouTube</option>
+          <option value="tw">Twitch</option>
+          <option value="go">Google</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="txt">O que buscar</label>
+        <input id="txt" type="search" placeholder="digite aqui" autocomplete="off" enterkeyhint="search">
+      </div>
+      <button class="go" id="sendTxt">Enviar para a TV</button>
+      <div class="help">Rádio: abre a lista já filtrada.<br>YouTube, Twitch e Google abrem no navegador da TV.</div>
+    </div>
+
+    <div id="t-url" class="panel box">
+      <div class="field">
+        <label for="lnk">Link</label>
+        <input id="lnk" type="url" placeholder="cole o link aqui" autocomplete="off" autocapitalize="off" autocorrect="off" enterkeyhint="go">
+      </div>
+      <button class="go" id="sendUrl">Abrir na TV</button>
+      <div class="help">Abre no navegador da TV. Se não for um link, vira uma busca no Google.</div>
+    </div>
+
+    <button id="chg">trocar código da TV</button>
+  </div>
+
+  <div id="st"></div>
+
+<script>
+  var $ = function (id) { return document.getElementById(id); };
+  function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  var code = (get('hubCode') || '').toLowerCase();
+  var st = $('st');
+
+  function msg(t, cls) { st.textContent = t; st.className = cls || ''; }
+
+  function render() {
+    var paired = code.length === 8;
+    $('pair').style.display = paired ? 'none' : 'flex';
+    $('main').style.display = paired ? 'flex' : 'none';
+    if (!paired) { msg('Na TV: Streaming Hub > card "Celular".'); }
+  }
+
+  $('save').onclick = function () {
+    var v = $('code').value.trim().toLowerCase();
+    if (v.length !== 8) { msg('O código tem 8 letras/números.', 'err'); return; }
+    code = v; set('hubCode', v); msg(''); render();
+  };
+  $('chg').onclick = function () { code = ''; set('hubCode', ''); render(); };
+
+  function send(text, label) {
+    if (navigator.vibrate) { navigator.vibrate(15); }
+    return fetch('https://ntfy.sh/tvhub-' + code, { method: 'POST', body: text })
+      .then(function (r) { r.ok ? msg('enviado: ' + (label || text), 'good') : msg('erro ' + r.status, 'err'); return r.ok; })
+      .catch(function () { msg('sem internet no celular?', 'err'); return false; });
+  }
+
+  // abas
+  Array.prototype.forEach.call(document.querySelectorAll('[data-tab]'), function (b) {
+    b.addEventListener('click', function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.tabs button'), function (x) { x.classList.toggle('on', x === b); });
+      Array.prototype.forEach.call(document.querySelectorAll('.panel'), function (p) { p.classList.toggle('on', p.id === b.getAttribute('data-tab')); });
+      msg('');
+    });
+  });
+
+  // botões do controle
+  Array.prototype.forEach.call(document.querySelectorAll('[data-k]'), function (b) {
+    b.addEventListener('click', function () { send(b.getAttribute('data-k')); });
+  });
+
+  // digitar
+  function sendText() {
+    var t = $('txt').value.trim();
+    if (!t) { msg('Digite alguma coisa.', 'err'); return; }
+    send('search:' + $('dest').value + ':' + t, 'busca "' + t + '"').then(function (ok) { if (ok) { $('txt').value = ''; } });
+  }
+  $('sendTxt').onclick = sendText;
+  $('txt').addEventListener('keydown', function (e) { if (e.key === 'Enter') { sendText(); } });
+
+  // link
+  function sendUrl() {
+    var u = $('lnk').value.trim();
+    if (!u) { msg('Cole um link.', 'err'); return; }
+    var isUrl = /^https?:\/\/\S+$/i.test(u);
+    var looksDomain = !/\s/.test(u) && /^[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(u);
+    var out = isUrl ? u : looksDomain ? 'https://' + u : 'https://www.google.com/search?q=' + encodeURIComponent(u);
+    send('url:' + out, 'link').then(function (ok) { if (ok) { $('lnk').value = ''; } });
+  }
+  $('sendUrl').onclick = sendUrl;
+  $('lnk').addEventListener('keydown', function (e) { if (e.key === 'Enter') { sendUrl(); } });
+
+  render();
+</script>
+</body>
+</html>
