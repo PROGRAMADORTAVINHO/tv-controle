@@ -20,7 +20,7 @@
   #save { padding: 0 18px; border-radius: 12px; background: #7c3aed; font-weight: 700; }
 
   .tabs { display: flex; width: 100%; max-width: 360px; background: #14141f; border-radius: 14px; padding: 4px; margin-bottom: 22px; }
-  .tabs button { flex: 1; padding: 10px 0; border-radius: 10px; background: none; color: #8a8aa0; font-size: 15px; }
+  .tabs button { flex: 1; padding: 10px 0; border-radius: 10px; background: none; color: #8a8aa0; font-size: 13px; }
   .tabs button.on { background: #7c3aed; color: #fff; font-weight: 700; }
   .panel { display: none; flex-direction: column; align-items: center; width: 100%; }
   .panel.on { display: flex; }
@@ -59,6 +59,7 @@
       <button data-tab="t-app">Apps</button>
       <button data-tab="t-txt">Digitar</button>
       <button data-tab="t-url">Link</button>
+      <button data-tab="t-slp">Timer</button>
     </div>
 
     <div id="t-ctl" class="panel on">
@@ -107,7 +108,16 @@
         <input id="lnk" type="url" placeholder="cole o link aqui" autocomplete="off" autocapitalize="off" autocorrect="off" enterkeyhint="go">
       </div>
       <button class="go" id="sendUrl">Abrir na TV</button>
+      <button class="go" id="saveUrl" style="margin-top:10px;background:#1b1b2b">⭐ Salvar link</button>
       <div class="help">Abre no navegador da TV. Se não for um link, vira uma busca no Google.</div>
+      <div id="saved" style="width:100%;margin-top:16px"></div>
+    </div>
+
+    <div id="t-slp" class="panel box">
+      <label>Parar a rádio e fechar o hub em:</label>
+      <div class="apps" id="slpGrid" style="margin-top:8px"></div>
+      <button class="go" id="slpOff" style="margin-top:12px;background:#1b1b2b">Cancelar timer</button>
+      <div class="help">Não desliga a TV: para a rádio e sai do hub. Só funciona com o hub aberto na TV. Para desligar de verdade, use o timer da própria TV (Configurações &gt; Geral &gt; Gerenciador do sistema &gt; Hora &gt; Temporizador).</div>
     </div>
 
     <button id="chg">trocar código da TV</button>
@@ -195,6 +205,46 @@
   }
   $('sendUrl').onclick = sendUrl;
   $('lnk').addEventListener('keydown', function (e) { if (e.key === 'Enter') { sendUrl(); } });
+
+  // links salvos
+  function outUrl(u) {
+    var isUrl = /^https?:\/\/\S+$/i.test(u);
+    var looksDomain = !/\s/.test(u) && /^[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(u);
+    return isUrl ? u : looksDomain ? 'https://' + u : 'https://www.google.com/search?q=' + encodeURIComponent(u);
+  }
+  var links = [];
+  try { links = JSON.parse(get('hubLinks') || '[]'); } catch (e) { links = []; }
+  function drawLinks() {
+    var box = $('saved'); box.innerHTML = '';
+    links.forEach(function (u, i) {
+      var row = document.createElement('div'); row.style.cssText = 'display:flex;margin-bottom:8px';
+      var b = document.createElement('button');
+      b.textContent = u.replace(/^https?:\/\/(www\.)?/, '');
+      b.style.cssText = 'flex:1;text-align:left;padding:13px;border-radius:12px;background:#1b1b2b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px';
+      b.onclick = function () { send('url:' + u, 'link'); };
+      var x = document.createElement('button');
+      x.textContent = '✕'; x.style.cssText = 'width:44px;margin-left:6px;border-radius:12px;background:#2a1b1b';
+      x.onclick = function () { links.splice(i, 1); set('hubLinks', JSON.stringify(links)); drawLinks(); };
+      row.appendChild(b); row.appendChild(x); box.appendChild(row);
+    });
+  }
+  $('saveUrl').onclick = function () {
+    var u = $('lnk').value.trim();
+    if (!u) { msg('Cole um link para salvar.', 'err'); return; }
+    u = outUrl(u);
+    if (links.indexOf(u) < 0) { links.unshift(u); set('hubLinks', JSON.stringify(links.slice(0, 30))); }
+    $('lnk').value = ''; msg('link salvo', 'good'); drawLinks();
+  };
+  drawLinks();
+
+  // timer
+  [15, 30, 45, 60, 90, 120].forEach(function (m) {
+    var b = document.createElement('button');
+    b.textContent = m + ' min'; b.style.background = '#1b1b2b';
+    b.addEventListener('click', function () { send('sleep:' + m, 'timer ' + m + ' min'); });
+    $('slpGrid').appendChild(b);
+  });
+  $('slpOff').onclick = function () { send('sleep:0', 'timer cancelado'); };
 
   render();
 </script>
