@@ -32,6 +32,9 @@
   .row { display: flex; }
   .row button { width: 130px; height: 58px; border-radius: 18px; background: #1b1b2b; font-size: 18px; margin: 0 6px; }
 
+  .apps { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 100%; max-width: 360px; }
+  .apps button { padding: 18px 8px; border-radius: 16px; font-weight: 700; font-size: 16px; background: #1b1b2b; }
+  .apps button:active { transform: scale(.96); filter: brightness(1.3); }
   label { align-self: flex-start; font-size: 13px; color: #8a8aa0; margin: 0 0 6px 4px; }
   .field { margin-bottom: 16px; width: 100%; }
   .go { width: 100%; padding: 15px; border-radius: 14px; background: linear-gradient(135deg, #7c3aed, #38bdf8); font-weight: 800; font-size: 18px; }
@@ -53,6 +56,7 @@
   <div id="main" style="display:none; width:100%; flex-direction:column; align-items:center;">
     <div class="tabs">
       <button class="on" data-tab="t-ctl">Controle</button>
+      <button data-tab="t-app">Apps</button>
       <button data-tab="t-txt">Digitar</button>
       <button data-tab="t-url">Link</button>
     </div>
@@ -69,13 +73,18 @@
       </div>
     </div>
 
+    <div id="t-app" class="panel">
+      <div class="apps" id="appsGrid"></div>
+      <div class="help">Abre o app de verdade da TV.</div>
+    </div>
+
     <div id="t-txt" class="panel box">
       <div class="field">
         <label for="dest">Buscar em</label>
         <select id="dest">
           <option value="rad">Rádio (estações)</option>
-          <option value="yt">YouTube</option>
-          <option value="tw">Twitch</option>
+          <option value="yt">YouTube (site, no navegador)</option>
+          <option value="tw">Twitch (site, no navegador)</option>
           <option value="go">Google</option>
         </select>
       </div>
@@ -84,7 +93,7 @@
         <input id="txt" type="search" placeholder="digite aqui" autocomplete="off" enterkeyhint="search">
       </div>
       <button class="go" id="sendTxt">Enviar para a TV</button>
-      <div class="help">Rádio: abre a lista já filtrada.<br>YouTube, Twitch e Google abrem no navegador da TV.</div>
+      <div class="help">Rádio: abre a lista já filtrada.<br>YouTube, Twitch e Google abrem como site no navegador da TV. Os apps da TV (Netflix, YouTube) não aceitam busca de fora: use a aba Apps para abri-los.</div>
     </div>
 
     <div id="t-url" class="panel box">
@@ -144,6 +153,21 @@
   // botões do controle
   Array.prototype.forEach.call(document.querySelectorAll('[data-k]'), function (b) {
     b.addEventListener('click', function () { send(b.getAttribute('data-k')); });
+  });
+
+  // apps
+  var APPS = [
+    ['Netflix','#e50914'], ['YouTube','#ff2a2a'], ['Prime Video','#00a8e1'], ['Disney+','#2f5bff'],
+    ['Globoplay','#ff5a36'], ['Max','#7c3aed'], ['Star+','#2dd47f'], ['Apple TV','#4b4b55'],
+    ['Crunchyroll','#ff8a1f'], ['Telecine','#e11d48'], ['Spotify','#1db954'], ['Samsung TV Plus','#3b82f6'],
+    ['Twitch','#9146ff'], ['Rádio','#38bdf8']
+  ];
+  APPS.forEach(function (a) {
+    var b = document.createElement('button');
+    b.textContent = a[0];
+    b.style.background = 'linear-gradient(135deg,' + a[1] + '55,' + a[1] + 'cc)';
+    b.addEventListener('click', function () { send('app:' + a[0], a[0]); });
+    $('appsGrid').appendChild(b);
   });
 
   // digitar
